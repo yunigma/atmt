@@ -100,8 +100,11 @@ def main(args):
 
     for epoch in range(last_epoch + 1, args.max_epoch):
         train_loader = \
-            torch.utils.data.DataLoader(train_dataset, num_workers=1, collate_fn=train_dataset.collater,
-                                        batch_sampler=BatchSampler(train_dataset, args.max_tokens, args.batch_size, 1,
+            torch.utils.data.DataLoader(train_dataset, num_workers=0,
+                                        collate_fn=train_dataset.collater,
+                                        batch_sampler=BatchSampler(train_dataset,
+                                                                   args.max_tokens,
+                                                                   args.batch_size, 1,
                                                                    0, shuffle=True, seed=42))
         model.train()
         stats = OrderedDict()
@@ -112,9 +115,10 @@ def main(args):
         stats['grad_norm'] = 0
         stats['clip'] = 0
         # Display progress
-        progress_bar = tqdm(train_loader, desc='| Epoch {:03d}'.format(epoch), leave=False, disable=False)
+        progress_bar = tqdm(train_loader, desc='| Epoch {:03d}'.format(epoch),
+                            leave=False, disable=False)
 
-        # Iterate over the training set
+        # Iterate over the training set: 'sample' is a batch
         for i, sample in enumerate(progress_bar):
             if args.cuda:
                 sample = utils.move_to_cuda(sample)
@@ -123,9 +127,11 @@ def main(args):
             model.train()
 
             output, _ = model(sample['src_tokens'], sample['src_lengths'], sample['tgt_inputs'])
+            # Optimisation step
             loss = \
                 criterion(output.view(-1, output.size(-1)), sample['tgt_tokens'].view(-1)) / len(sample['src_lengths'])
             loss.backward()
+            # Clip threshold of gradients
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_norm)
             optimizer.step()
             optimizer.zero_grad()
@@ -166,7 +172,7 @@ def main(args):
 def validate(args, model, criterion, valid_dataset, epoch):
     """ Validates model performance on a held-out development set. """
     valid_loader = \
-        torch.utils.data.DataLoader(valid_dataset, num_workers=1, collate_fn=valid_dataset.collater,
+        torch.utils.data.DataLoader(valid_dataset, num_workers=0, collate_fn=valid_dataset.collater,
                                     batch_sampler=BatchSampler(valid_dataset, args.max_tokens, args.batch_size, 1, 0,
                                                                shuffle=False, seed=42))
     model.eval()
