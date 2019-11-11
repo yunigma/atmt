@@ -51,9 +51,11 @@ def main(args):
         tgt_file=os.path.join(args.data, 'test.{:s}'.format(args.target_lang)),
         src_dict=src_dict, tgt_dict=tgt_dict)
 
-    test_loader = torch.utils.data.DataLoader(test_dataset, num_workers=1, collate_fn=test_dataset.collater,
+    test_loader = torch.utils.data.DataLoader(test_dataset, num_workers=1,
+                                              collate_fn=test_dataset.collater,
                                               batch_sampler=BatchSampler(test_dataset, 9999999,
-                                                                         args.batch_size, 1, 0, shuffle=False,
+                                                                         args.batch_size, 1, 0,
+                                                                         shuffle=False,
                                                                          seed=args.seed))
     # Build model and criterion
     model = models.build_model(args, src_dict, tgt_dict)
@@ -83,7 +85,8 @@ def main(args):
             _, next_candidates = torch.topk(decoder_out, 2, dim=-1)
             best_candidates = next_candidates[:, :, 0]
             backoff_candidates = next_candidates[:, :, 1]
-            next_words = torch.where(best_candidates == tgt_dict.unk_idx, backoff_candidates, best_candidates)
+            next_words = torch.where(best_candidates == tgt_dict.unk_idx,
+                                     backoff_candidates, best_candidates)
             prev_words = torch.cat([go_slice, next_words], dim=1)
 
         # Segment into sentences

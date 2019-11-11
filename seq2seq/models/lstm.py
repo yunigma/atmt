@@ -81,7 +81,7 @@ class LSTMEncoder(Seq2SeqEncoder):
                  dictionary,
                  embed_dim=64,
                  hidden_size=64,
-                 num_layers=1,
+                 num_layers=3,
                  bidirectional=True,
                  dropout_in=0.25,
                  dropout_out=0.25,
@@ -202,7 +202,7 @@ class LSTMDecoder(Seq2SeqDecoder):
                  dictionary,
                  embed_dim=64,
                  hidden_size=128,
-                 num_layers=1,
+                 num_layers=2,
                  dropout_in=0.25,
                  dropout_out=0.25,
                  pretrained_embedding=None,
@@ -332,14 +332,6 @@ class LSTMDecoder(Seq2SeqDecoder):
             lexical_contexts = lexical_contexts.transpose(0, 1)
 
             # Parameters for lexical model.
-            # self.weight_hl = Parameter(torch.randn(tgt_time_steps + batch_size,
-            #                                        len(self.dictionary)))
-            # self.bias_hl = Parameter(torch.randn(tgt_time_steps + batch_size))
-
-            # decoder_output = torch.softmax(torch.sum(torch.mm(lexical_contexts,
-            #                                                   self.weight_hl),
-            #                                          self.bias_hl))
-
             lexical_model = self.lexical_model_projection(lexical_contexts)
             decoder_output += lexical_model
 
