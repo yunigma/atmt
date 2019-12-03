@@ -29,9 +29,9 @@ def get_args():
 
     # Add beam search arguments
     parser.add_argument('--beam-size', default=4, type=int, help='number of hypotheses expanded in beam search')
-    # parser.add_argument('--alpha', default=0.5, type=int, help='aplha parameter for soft length normalisation')
+    # parser.add_argument('--alpha', default=0.5, type=float, help='aplha parameter for soft length normalisation')
     parser.add_argument('--n-best', default=3, type=int, help='number of best translations to print')
-    parser.add_argument('--gamma', default=1.0, type=int, help='gamma parameter for the diverse beam approach')
+    parser.add_argument('--gamma', default=0.7, type=float, help='gamma parameter for the diverse beam approach')
 
     return parser.parse_args()
 
@@ -177,6 +177,7 @@ def main(args):
                     # print("Old {}".format(log_p))
                     log_p = log_p - ranking
                     # print("New {}".format(log_p))
+
                     next_word = torch.cat((prev_words[i][1:], next_word[-1:]))
 
                     # __QUESTION 4: Why do we treat nodes that generated the end-of-sentence token differently?
@@ -187,7 +188,8 @@ def main(args):
                                               node.final_hidden,
                                               node.final_cell, node.mask,
                                               torch.cat((prev_words[i][0].view([1]),
-                                              next_word)), node.logp, node.length)
+                                              next_word)), node.logp,
+                                              node.length)
                         search.add_final(-node.eval(), node)
 
                     # Add the node to current nodes for next iteration
@@ -196,7 +198,8 @@ def main(args):
                                               node.final_hidden,
                                               node.final_cell, node.mask,
                                               torch.cat((prev_words[i][0].view([1]),
-                                              next_word)), node.logp + log_p, node.length + 1)
+                                              next_word)), node.logp + log_p,
+                                              node.length + 1)
                         search.add(-node.eval(), node)
 
             # __QUESTION 5: What happens internally when we prune our beams?

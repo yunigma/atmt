@@ -12,10 +12,10 @@ class BeamSearch(object):
         self.max_len = max_len
         self.pad = pad
 
-        self.nodes = PriorityQueue() # beams to be expanded
-        self.final = PriorityQueue() # beams that ended in EOS
+        self.nodes = PriorityQueue()  # beams to be expanded
+        self.final = PriorityQueue()  # beams that ended in EOS
 
-        self._counter = count() # for correct ordering of nodes with same score
+        self._counter = count()  # for correct ordering of nodes with same score
 
     def add(self, score, node):
         """ Adds a new beam search node to the queue of current nodes """
@@ -70,7 +70,8 @@ class BeamSearch(object):
 
 class BeamSearchNode(object):
     """ Defines a search node and stores values important for computation of beam search path"""
-    def __init__(self, search, emb, lstm_out, final_hidden, final_cell, mask, sequence, logProb, length):
+    def __init__(self, search, emb, lstm_out, final_hidden, final_cell, mask,
+                 sequence, logProb, length):
 
         # Attributes needed for computation of decoder states
         self.sequence = sequence
@@ -88,9 +89,14 @@ class BeamSearchNode(object):
 
     def eval(self):
         """ Returns score of sequence up to this node """
-        alpha = 1.0
-        # gamma = 1
         # Define the normalisation value:
+        alpha = 1.0
         norm = (5 + self.length)**alpha / (5 + 1)**alpha
 
+        # Diverse beam search approach:
+        # gamma = 0.0
+        # k = self.search.nodes.qsize()
+        # ranking = gamma * k
+
+        # return self.logp / norm - ranking
         return self.logp / norm
